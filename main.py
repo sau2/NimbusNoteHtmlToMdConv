@@ -144,7 +144,7 @@ def nimbusNoteHtmlToMdConv():
 
                 no = os.path.join(cp, f.replace('.zip', '.md'))
                 fo = open(no, mode="w", encoding="utf-8")
-                fo.write(md(fi.read(), heading_style="ATX"))
+                fo.write(md(fi.read(), heading_style="ATX", strip=['title']))
                 fo.close()
 
                 suf, cnr = '', 0
