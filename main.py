@@ -126,6 +126,8 @@ def nimbusNoteHtmlToMdConv3():
 def nimbusNoteHtmlToMdConv():
     pt = 'D://sau//PJ//NimbusNotes//TMP'
     ph = 'D://sau//PJ//NimbusNotes//All Notes'
+    # ph = 'D://sau//PJ//NimbusNotes//AllNotes0'
+    # cp = po = 'D://sau//PJ//NimbusNotes//OUT_HTML0'
     cp = po = 'D://sau//PJ//NimbusNotes//OUT_HTML'
     for root, dirs, files in os.walk(ph):
         r = root.split('\\')
@@ -138,31 +140,87 @@ def nimbusNoteHtmlToMdConv():
                 pass
         for f in files:
             if f.endswith('.zip'):
-                # zipfile.ZipFile(os.path.join(ph, *(r[1:] + [f]))).extractall(pt)
-                zipfile.ZipFile(os.path.join(ph, *(r[1:] + [f]))).extract('note.html', pt)
+                zipfile.ZipFile(os.path.join(ph, *(r[1:] + [f]))).extractall(pt)
+                # zipfile.ZipFile(os.path.join(ph, *(r[1:] + [f]))).extract('note.html', pt)
                 fi = open(os.path.join(pt, 'note.html'), mode="r", encoding="utf-8")
 
                 no = os.path.join(cp, f.replace('.zip', '.md'))
                 fo = open(no, mode="w", encoding="utf-8")
-                fo.write(md(fi.read(), heading_style="ATX", strip=['title']))
+                cnt = fi.read()
+                b = cnt.find('<body>')
+                if b != -1:
+                    e = cnt.rfind('</body>')
+                    t = cnt[b + 6:] if e < 0 else cnt[b + 6:e]
+                    t = t.strip().replace('</div>', '</div>\n')
+                    t = md(t, heading_style="ATX", strip='alt').strip()
+                    t = re.sub(r"\r\r+", r"\r", t)
+                    t = re.sub(r"\n\n+", r"\n", t)
+                    # t = re.sub(r'alt=\".*\"', r"", t)  # Error if alt exist after href
+                    x = []
+                    for i in t.splitlines():
+                        x.append(i.rstrip())
+                    t = '\n'.join(x)
+                    fo.write(t)
+
+                    if 'assets' in t:
+                        pa = os.path.join(cp, 'assets')
+                        try:
+                            os.mkdir(pa)
+                        except FileExistsError:
+                            pass
+                        pp = os.path.join(pt, 'assets')
+                        # t = t.replace('.jpeg', '.jpg')
+                        for ff in re.findall(r"(?<=assets/).+(?=\))", t):
+                            fi = os.path.join(pp, ff)
+                            try:
+                                os.replace(fi, os.path.join(pa, ff))
+                            except FileNotFoundError:
+                                pass
+                            # if os.path.isfile(fi):
+                            #     os.replace(fi, os.path.join(pa, ff))
+
+                # print(h[b + 6:e])
+                # ff = re.search(r"(?<=<body>).*(?=</body>)", cnt)
+                # if ff:
+                #     fo.write(md(ff[0], heading_style="ATX"))
                 fo.close()
-
-                suf, cnr = '', 0
-                # while os.path.isfile(nn + suf + ".md"):
-                #     cnr += 1
-                #     suf = f"_{cnr}"
-                # nn += suf + ".md"
-                # f = open(nn, mode="w", encoding="utf-8")
-                # cnt = n['content_data']
-                # for i in re.findall(r"#attacheloc:([^#]+)#", cnt):
-                #     for j in n["attach_list"]:
-                #         if j["attach_id"] == i:
-                #             pn = j["pathname"]
-                #             nm = os.path.basename(pn)
-                #             shutil.copyfile("D://sau//JP//NimbusNotes" + pn[1:], os.path.join(fn, nm))
-                #             cnt = cnt.replace(f"#attacheloc:{i}#", nm)
-                #             break
-
 
 
 nimbusNoteHtmlToMdConv()
+
+# h = """
+# <!doctype html>
+# <html lang="en">
+#     <head>
+#         <title>Список задач - Ужин</title>
+#         <meta charset="utf-8">
+#         <link rel="stylesheet" type="text/css" href="./assets/theme.css">
+#         <link rel="stylesheet" type="text/css" href="./assets/fonts/fonts.css">
+#         <link rel="stylesheet" href="./assets/fonts/google-fonts/IBMPlexSans-Roboto.css">
+#         <link rel="stylesheet" href="./assets/fonts/google-fonts/RobotoSlab.css">
+#         <link rel="stylesheet" href="./assets/fonts/google-fonts/Caveat.css">
+#         <link rel="stylesheet" href="./assets/fonts/google-fonts/AnonymousPro.css">
+#         <link rel="stylesheet" href="./assets/fonts/google-fonts/Inconsolata.css">
+#     </head>
+#     <body>
+#         <div id="note-editor" class="note-container theme-light is-safari" style="position: relative;">
+# <div class="editor-body">
+# <div class="export-mode nedit-root notranslate size-normal style-normal" id="note-root"><div class="editable-text paragraph indent-0" style="text-align:left;"><br></div></div>
+# </div>
+# </div>
+#     </body>
+# </html>
+# """
+#
+# h = """
+# <body>12345
+# 6789
+# </body>
+# """
+#
+# # ff = re.search(r"(?m)(?<=<body>).*(?=</body>)", h)
+# # ff = re.search(r"(?m)(?<=<body>).*(?=</body>)", h)
+# b = h.index('<body>')
+# e = h.rindex('</body>')
+# print(h[b + 6:e])
+#
